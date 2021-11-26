@@ -1,0 +1,60 @@
+#server.port=9005
+#spring.application.name=API-GATWAY
+#eureka.instance.hostname=localhost 
+
+#spring.cloud.gateway.routes-id:user-service
+#spring.cloud.gateway.routes-uri:lb://user-service
+#spring.cloud.gateway.routes-predicates-Path=/user/**
+
+#spring.cloud.gateway.routes-id:contact-service
+#spring.cloud.gateway.routes-uri:lb://contact-service
+#spring.cloud.gateway.routes-predicates-Path=/contact/**
+
+server:
+   port: 9006
+
+eureka:
+   instance:
+     hostname: localhost
+
+   
+spring:
+   application:
+      name: api-gateway   
+   cloud: 
+    gateway: 
+     routes:
+      - id: user-service
+        uri: 'http://localhost:9001'
+        predicates:
+          - Path=/user/**
+        filters:
+          - name: CircuitBreaker
+            args: 
+               name: user-service
+               fallbackuri: forward:/userServiceFallBack  
+          
+      - id: contact-service
+        uri: 'http://localhost:9002'
+        predicates:
+          - Path=/contact/**               
+        filters:
+          - name: CircuitBreaker
+            args: 
+               name: contact-service
+               fallbackuri: forward:/contactServiceFallBack 
+                    
+               
+hystrix:
+   command:
+      fallbackcmd:
+          execution:
+             isolation:
+                thread:
+                   timeoutInMilliesecounds: 5000
+                   
+management:
+  endpoints:
+     web:
+       exposure:
+          include: hystrix.stream                   
